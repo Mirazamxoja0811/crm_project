@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: crm_app
+    volumes:
+      - ./backend/textile_crm.db:/app/backend/textile_crm.db
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: crm_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TextileCRM — Kiyim-kechak Boshqaruv Tizimi</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🧵</div>
+    <div>
+      <div class="logo-text">TextileCRM</div>
+      <div class="logo-sub">v1.0 · Cloud ERP</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Asosiy</div>
+    <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+      <span class="nav-icon">⬛</span> Boshqaruv paneli
+    </button>
+
+    <div class="nav-section" style="margin-top:8px">CRM</div>
+    <button class="nav-item" data-page="customers" onclick="navigate('customers')">
+      <span class="nav-icon">👥</span> Mijozlar
+    </button>
+    <button class="nav-item" data-page="interactions" onclick="navigate('interactions')">
+      <span class="nav-icon">💬</span> Muloqotlar
+    </button>
+
+    <div class="nav-section" style="margin-top:8px">Savdo</div>
+    <button class="nav-item" data-page="orders" onclick="navigate('orders')">
+      <span class="nav-icon">📦</span> Buyurtmalar
+      <span class="nav-badge" id="pending-count">0</span>
+    </button>
+
+    <div class="nav-section" style="margin-top:8px">Ombor</div>
+    <button class="nav-item" data-page="products" onclick="navigate('products')">
+      <span class="nav-icon">🧥</span> Mahsulotlar
+    </button>
+
+    <div class="nav-section" style="margin-top:16px">Tizim</div>
+    <button class="nav-item" id="seed-btn">
+      <span class="nav-icon">🌱</span> Demo ma'lumot
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="avatar">AD</div>
+    <div class="avatar-info">
+      <div class="name">Admin User</div>
+      <div class="role">Tizim boshqaruvchi</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== MAIN WRAPPER ===== -->
+<div class="main-wrapper">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Boshqaruv paneli</div>
+      <div class="topbar-subtitle" id="topbar-subtitle">Barcha ko'rsatkichlar — jonli</div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-bar" id="global-search-bar" style="display:none">
+        <span style="color:var(--text-muted);font-size:14px">🔍</span>
+        <input type="text" placeholder="Qidirish..." id="customer-search">
+      </div>
+      <div class="icon-btn" title="Yangilash" onclick="loadPage(currentPage)">↻</div>
+    </div>
+  </header>
+
+  <!-- ===== DASHBOARD PAGE ===== -->
+  <div class="page-content active" id="page-dashboard">
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Jami mijozlar</div>
+        <div class="stat-value" id="stat-customers">—</div>
+        <div class="stat-icon">👥</div>
+        <div class="stat-change up">↑ Faol</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Jami buyurtmalar</div>
+        <div class="stat-value" id="stat-orders">—</div>
+        <div class="stat-icon">📦</div>
+        <div class="stat-change up">↑ Umumiy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Kutilayotgan</div>
+        <div class="stat-value" id="stat-pending">—</div>
+        <div class="stat-icon">⏳</div>
+        <div class="stat-change neutral">Jarayonda</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Umumiy daromad</div>
+        <div class="stat-value" id="stat-revenue">—</div>
+        <div class="stat-icon">💰</div>
+        <div class="stat-change up">↑ Jami</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Mahsulotlar (SKU)</div>
+        <div class="stat-value" id="stat-products">—</div>
+        <div class="stat-icon">🧥</div>
+        <div class="stat-change neutral">Katalogda</div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <!-- Recent Orders -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="dot"></div> So'nggi buyurtmalar</div>
+          <a class="card-action" onclick="navigate('orders')">Barchasi →</a>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Buyurtma #</th>
+                <th>Mijoz</th>
+                <th>Status</th>
+                <th>Summa</th>
+                <th>Sana</th>
+              </tr>
+            </thead>
+            <tbody id="recent-orders-body">
+              <tr><td colspan="5"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Status Donut -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📊 Buyurtmalar holati</div>
+        </div>
+        <div class="donut-wrap">
+          <div id="status-donut"></div>
+          <div class="donut-legend" id="status-legend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <!-- Revenue Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📈 Oylik daromad</div>
+          <span style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">So'm</span>
+        </div>
+        <div class="chart-container">
+          <div class="mini-chart" id="revenue-bars"></div>
+        </div>
+        <div class="chart-labels" id="revenue-labels"></div>
+      </div>
+
+      <!-- Top Customers -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🏆 Top mijozlar</div>
+          <a class="card-action" onclick="navigate('customers')">Barchasi →</a>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Kompaniya</th><th>Status</th><th>Jami</th><th>№</th></tr>
+            </thead>
+            <tbody id="top-customers-body">
+              <tr><td colspan="4"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CUSTOMERS PAGE ===== -->
+  <div class="page-content" id="page-customers">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <span style="font-size:13px;color:var(--text-muted)">Jami: </span>
+        <span id="customer-count" style="font-weight:700;color:var(--accent-emerald)">0</span>
+        <span style="font-size:13px;color:var(--text-muted)"> ta mijoz</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="search-bar">
+          <span style="color:var(--text-muted)">🔍</span>
+          <input type="text" placeholder="Qidirish..." id="customer-search" oninput="loadCustomers(this.value)">
+        </div>
+        <button class="btn btn-primary" id="add-customer-btn">+ Yangi mijoz</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Kompaniya</th><th>Aloqa shaxsi</th><th>Telefon</th>
+              <th>Shahar</th><th>Status</th><th>Jami xarid</th><th>Amal</th>
+            </tr>
+          </thead>
+          <tbody id="customers-body">
+            <tr><td colspan="7"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ORDERS PAGE ===== -->
+  <div class="page-content" id="page-orders">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <span style="font-size:13px;color:var(--text-muted)">Jami: </span>
+        <span id="order-count" style="font-weight:700;color:var(--accent-emerald)">0</span>
+        <span style="font-size:13px;color:var(--text-muted)"> ta buyurtma</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-order-filter="">Barchasi</button>
+          <button class="filter-tab" data-order-filter="pending">Kutilmoqda</button>
+          <button class="filter-tab" data-order-filter="processing">Jarayonda</button>
+          <button class="filter-tab" data-order-filter="shipped">Yuborildi</button>
+          <button class="filter-tab" data-order-filter="delivered">Yetkazildi</button>
+        </div>
+        <button class="btn btn-primary" id="add-order-btn">+ Yangi buyurtma</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Buyurtma #</th><th>Mijoz</th><th>Status</th>
+              <th>Summa</th><th>Sana</th><th>Status yangilash</th><th>Amal</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body">
+            <tr><td colspan="7"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PRODUCTS PAGE ===== -->
+  <div class="page-content" id="page-products">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <span style="font-size:13px;color:var(--text-muted)">Katalogda: </span>
+        <span id="product-count" style="font-weight:700;color:var(--accent-emerald)">0</span>
+        <span style="font-size:13px;color:var(--text-muted)"> ta mahsulot</span>
+      </div>
+      <button class="btn btn-primary" id="add-product-btn">+ Yangi mahsulot</button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>SKU</th><th>Nomi</th><th>Kategoriya</th>
+              <th>Narx</th><th>Zaxira</th><th>Qo'shilgan</th><th>Amal</th>
+            </tr>
+          </thead>
+          <tbody id="products-body">
+            <tr><td colspan="7"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INTERACTIONS PAGE ===== -->
+  <div class="page-content" id="page-interactions">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:13px;color:var(--text-muted)">Mijozlar bilan barcha aloqa turlari</div>
+      <button class="btn btn-primary" id="add-interaction-btn">+ Muloqot qo'shish</button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Tur</th><th>Mijoz</th><th>Mavzu</th><th>Tavsif</th><th>Natija</th><th>Sana</th></tr>
+          </thead>
+          <tbody id="interactions-body">
+            <tr><td colspan="6"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main-wrapper -->
+
+<!-- ===== TOAST ===== -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ===== MODAL: ADD/EDIT CUSTOMER ===== -->
+<div class="modal-overlay" id="customer-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="customer-modal-title">Yangi mijoz qo'shish</div>
+      <button class="modal-close" onclick="closeModal('customer-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="customer-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Kompaniya nomi *</label>
+            <input name="company_name" class="form-control" placeholder="Ipak Yo'li Savdo" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Aloqa shaxsi *</label>
+            <input name="contact_name" class="form-control" placeholder="Alisher Nazarov" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input name="email" type="email" class="form-control" placeholder="info@company.uz" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefon</label>
+            <input name="phone" class="form-control" placeholder="+998 90 123 45 67">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Shahar</label>
+            <input name="city" class="form-control" placeholder="Toshkent">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Davlat</label>
+            <input name="country" class="form-control" value="O'zbekiston">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Manzil</label>
+          <input name="address" class="form-control" placeholder="Chilonzor tumani, ...">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-control">
+              <option value="active">Faol</option>
+              <option value="vip">VIP</option>
+              <option value="inactive">Nofaol</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Eslatmalar</label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="Qo'shimcha ma'lumot..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('customer-modal')">Bekor</button>
+      <button class="btn btn-primary" onclick="document.getElementById('customer-form').requestSubmit()">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CUSTOMER DETAIL ===== -->
+<div class="modal-overlay" id="customer-detail-modal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title">Mijoz tafsilotlari</div>
+      <button class="modal-close" onclick="closeModal('customer-detail-modal')">✕</button>
+    </div>
+    <div class="detail-header">
+      <div class="detail-avatar"></div>
+      <div class="detail-meta">
+        <div class="company"></div>
+        <div class="contact"></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="label">Jami xarid</div><div class="value" id="detail-spent">—</div></div>
+      <div class="stat-cell"><div class="label">Buyurtmalar</div><div class="value" id="detail-orders">—</div></div>
+      <div class="stat-cell"><div class="label">Shahar</div><div class="value" id="detail-city">—</div></div>
+      <div class="stat-cell"><div class="label">Status</div><div class="value" id="detail-status">—</div></div>
+    </div>
+
+    <div style="padding:16px 20px 8px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">📦 Buyurtmalar tarixi</div>
+      <div class="table-wrapper" style="max-height:160px;overflow-y:auto">
+        <table><thead><tr><th>Buyurtma #</th><th>Status</th><th>Summa</th><th>Sana</th></tr></thead>
+        <tbody id="detail-orders-list"></tbody></table>
+      </div>
+    </div>
+
+    <div style="padding:8px 20px 16px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">💬 Muloqotlar tarixi</div>
+      <div class="timeline" id="detail-timeline" style="max-height:200px;overflow-y:auto;padding:0"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('customer-detail-modal')">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ADD ORDER ===== -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Yangi buyurtma</div>
+      <button class="modal-close" onclick="closeModal('order-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="order-form">
+        <div class="form-group">
+          <label class="form-label">Mijoz *</label>
+          <select name="customer_id" id="order-customer-id" class="form-control" required>
+            <option value="">— Tanlang —</option>
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-control">
+              <option value="pending">Kutilmoqda</option>
+              <option value="processing">Jarayonda</option>
+              <option value="shipped">Yuborildi</option>
+              <option value="delivered">Yetkazildi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jami summa (so'm)</label>
+            <input name="total_amount" type="number" class="form-control" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Yetkazib berish manzili</label>
+          <input name="shipping_address" class="form-control" placeholder="Shahar, tuman...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Eslatma</label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('order-modal')">Bekor</button>
+      <button class="btn btn-primary" onclick="document.getElementById('order-form').requestSubmit()">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ADD/EDIT PRODUCT ===== -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="product-modal-title">Yangi mahsulot</div>
+      <button class="modal-close" onclick="closeModal('product-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="product-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nomi *</label>
+            <input name="name" class="form-control" placeholder="Ko'ylak klassik" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SKU *</label>
+            <input name="sku" class="form-control" placeholder="KOY-001" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Kategoriya</label>
+            <input name="category" class="form-control" placeholder="Ko'ylaklar">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Narx (so'm) *</label>
+            <input name="price" type="number" class="form-control" placeholder="85000" required min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Zaxira miqdori</label>
+            <input name="stock_quantity" type="number" class="form-control" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">O'lchov birligi</label>
+            <select name="unit" class="form-control">
+              <option value="dona">dona</option>
+              <option value="kg">kg</option>
+              <option value="metr">metr</option>
+              <option value="to'plam">to'plam</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tavsif</label>
+          <textarea name="description" class="form-control" rows="2" placeholder="Mahsulot haqida..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('product-modal')">Bekor</button>
+      <button class="btn btn-primary" onclick="document.getElementById('product-form').requestSubmit()">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ADD INTERACTION ===== -->
+<div class="modal-overlay" id="interaction-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Muloqot qo'shish</div>
+      <button class="modal-close" onclick="closeModal('interaction-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="interaction-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Mijoz *</label>
+            <select name="customer_id" id="interaction-customer-id" class="form-control" required>
+              <option value="">— Tanlang —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Muloqot turi *</label>
+            <select name="type" class="form-control" required>
+              <option value="call">📞 Qo'ng'iroq</option>
+              <option value="email">✉️ Email</option>
+              <option value="meeting">🤝 Uchrashuv</option>
+              <option value="note">📝 Eslatma</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mavzu *</label>
+          <input name="subject" class="form-control" placeholder="Muloqot mavzusi..." required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tavsif</label>
+          <textarea name="description" class="form-control" rows="2" placeholder="Batafsil..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Natija</label>
+          <input name="outcome" class="form-control" placeholder="Kelishuv bo'ldi, javob kutilmoqda...">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('interaction-modal')">Bekor</button>
+      <button class="btn btn-primary" onclick="document.getElementById('interaction-form').requestSubmit()">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
