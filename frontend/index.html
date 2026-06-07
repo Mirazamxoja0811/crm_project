@@ -9,6 +9,29 @@
 <body>
 
 <!-- ===== SIDEBAR ===== -->
+<!-- ===== AUTH OVERLAY ===== -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">🧵 TextileCRM</div>
+    <div class="auth-title">Tizimga kirish</div>
+    <div class="auth-subtitle">Boshqaruv paneliga xush kelibsiz</div>
+    
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label">Login</label>
+        <input type="text" id="login-username" class="form-control" placeholder="admin" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Parol</label>
+        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Kirish</button>
+    </form>
+    
+    <div class="auth-error" id="auth-error" style="display:none; color:var(--accent-red); margin-top:15px; text-align:center; font-size:14px;"></div>
+  </div>
+</div>
+
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">🧵</div>
@@ -50,10 +73,17 @@
   </nav>
 
   <div class="sidebar-footer">
-    <div class="avatar">AD</div>
-    <div class="avatar-info">
-      <div class="name">Admin User</div>
-      <div class="role">Tizim boshqaruvchi</div>
+    <div style="display:flex; align-items:center; width: 100%; justify-content: space-between;">
+      <div style="display:flex; align-items:center;">
+        <div class="avatar">AD</div>
+        <div class="avatar-info" style="margin-left:10px;">
+          <div class="name">Admin User</div>
+          <div class="role">Tizim boshqaruvchi</div>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-secondary" onclick="handleLogout()" title="Tizimdan chiqish" style="padding: 6px; display:flex; align-items:center; justify-content:center;">
+        <span style="font-size:16px;">🚪</span>
+      </button>
     </div>
   </div>
 </aside>

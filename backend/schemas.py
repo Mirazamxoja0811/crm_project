@@ -2,6 +2,11 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime
 
+# ===== AUTH SCHEMAS =====
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
 # ===== CUSTOMER SCHEMAS =====
 class CustomerBase(BaseModel):
     company_name: str

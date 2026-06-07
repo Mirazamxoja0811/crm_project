@@ -2,11 +2,19 @@ const API = '/api';
 
 // ===== API HELPERS =====
 async function apiFetch(endpoint, options = {}) {
+  const token = localStorage.getItem('admin_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   try {
     const res = await fetch(`${API}${endpoint}`, {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...headers, ...(options.headers || {}) },
       ...options,
     });
+    if (res.status === 401) {
+      handleLogout();
+      throw new Error('Ruxsat yo\'q. Iltimos tizimga kiring.');
+    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.detail || `HTTP ${res.status}`);
@@ -692,9 +700,51 @@ async function seedDatabase() {
   }
 }
 
+// ===== AUTH =====
+function handleLogout() {
+  localStorage.removeItem('admin_token');
+  document.getElementById('auth-overlay').style.display = 'flex';
+}
+
+function checkAuth() {
+  if (!localStorage.getItem('admin_token')) {
+    document.getElementById('auth-overlay').style.display = 'flex';
+  } else {
+    document.getElementById('auth-overlay').style.display = 'none';
+    navigate('dashboard');
+  }
+}
+
+document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = e.target['login-username'].value;
+  const password = e.target['login-password'].value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+  
+  try {
+    // Standard fetch without auth interceptor
+    const res = await fetch(`${API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Xatolik yuz berdi');
+    
+    localStorage.setItem('admin_token', data.token);
+    document.getElementById('auth-overlay').style.display = 'none';
+    e.target.reset();
+    navigate('dashboard');
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  }
+});
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  navigate('dashboard');
+  checkAuth();
 
   // Seed button
   document.getElementById('seed-btn')?.addEventListener('click', seedDatabase);
