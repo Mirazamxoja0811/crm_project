@@ -182,19 +182,19 @@ def create_order(db: Session, order: schemas.OrderCreate):
     db.add(db_order)
     db.flush()
 
-    total = 0
-    for item_data in (order.items or []):
-        item = models.OrderItem(order_id=db_order.id, **item_data.dict())
-        db.add(item)
-        total += item_data.subtotal
-
-    db_order.total_amount = total
+    if order.items:
+        total = 0
+        for item_data in order.items:
+            item = models.OrderItem(order_id=db_order.id, **item_data.dict())
+            db.add(item)
+            total += item_data.subtotal
+        db_order.total_amount = total
 
     # Update customer stats
     customer = db.query(models.Customer).filter(models.Customer.id == order.customer_id).first()
     if customer:
         customer.total_orders += 1
-        customer.total_spent += total
+        customer.total_spent += db_order.total_amount
 
     db.commit()
     db.refresh(db_order)
