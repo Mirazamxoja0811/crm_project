@@ -49,7 +49,7 @@ class Product(ProductBase):
 
 # ===== ORDER ITEM SCHEMAS =====
 class OrderItemBase(BaseModel):
-    product_id: int
+    product_id: Optional[int] = None
     quantity: int
     unit_price: float
     subtotal: float
@@ -66,7 +66,7 @@ class OrderItem(OrderItemBase):
 
 # ===== ORDER SCHEMAS =====
 class OrderBase(BaseModel):
-    customer_id: int
+    customer_id: Optional[int] = None
     status: Optional[str] = "pending"
     total_amount: float = 0.0
     shipping_address: Optional[str] = None
@@ -91,7 +91,7 @@ class Order(OrderBase):
 
 # ===== INTERACTION SCHEMAS =====
 class InteractionBase(BaseModel):
-    customer_id: int
+    customer_id: Optional[int] = None
     type: str
     subject: str
     description: Optional[str] = None
