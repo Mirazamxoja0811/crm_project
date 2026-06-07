@@ -1,4 +1,4 @@
-const API = 'http://localhost:8000/api';
+const API = '/api';
 
 // ===== API HELPERS =====
 async function apiFetch(endpoint, options = {}) {
