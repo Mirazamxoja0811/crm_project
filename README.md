@@ -40,7 +40,7 @@ cd backend
 python main.py
 ```
 
-### 3. Brauzerda ochish
+### 3. Brauzerda ochishasd
 ```
 http://localhost:8000
 ```
@@ -50,7 +50,7 @@ Sidebar pastki qismidagi **"🌱 Demo ma'lumot"** tugmasini bosing.
 
 ---
 
-## 🔌 API Endpointlar
+## 🔌 API Endpointlarasdasd
 
 | Method | Endpoint | Tavsif |
 |--------|----------|--------|
